@@ -11,8 +11,8 @@ WHERE location like '%china%'
 order by 1,2
 
 --Infected percentage人群感染率
-Select Location, Population,date, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
-From PortfolioProject..CovidDeaths
+Select Location, Population,date, MAX(CAST(total_cases AS FLOAT)) as HighestInfectionCount,  Max(CAST(total_cases AS FLOAT)/NULLIF(CAST(population AS FLOAT),0))*100 as PercentPopulationInfected
+From [SQL Portfolio]..CovidDeaths
 --Where location like '%states%'
 Group by Location, Population, date
 order by PercentPopulationInfected desc
