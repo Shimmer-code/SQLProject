@@ -4,19 +4,20 @@ FROM [SQL Portfolio]..CovidVaccinations
 
 order by 3,4
 
---likelihood of dying if infected in ur areaµØ·½¸ĞÈ¾ËÀÍöÂÊ
+--likelihood of dying if infected in ur areaåœ°æ–¹æ„ŸæŸ“æ­»äº¡ç‡
 SELECT location, date, total_cases, total_deaths, (CAST(total_deaths AS FLOAT) / NULLIF(CAST(total_cases AS FLOAT), 0)) * 100 AS death_percentage
 FROM [SQL Portfolio]..CovidDeaths
 WHERE location like '%china%'
 order by 1,2
 
---Infected percentageÈËÈº¸ĞÈ¾ÂÊ
-SELECT location, population, total_cases, population, (CAST(total_cases AS FLOAT) / NULLIF(CAST(population AS FLOAT), 0)) * 100 AS infected_percentage
-FROM [SQL Portfolio]..CovidDeaths
-WHERE location like '%china%'
-order by 1,2
+--Infected percentageäººç¾¤æ„ŸæŸ“ç‡
+Select Location, Population,date, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+From PortfolioProject..CovidDeaths
+--Where location like '%states%'
+Group by Location, Population, date
+order by PercentPopulationInfected desc
 
---µØÇøÖĞ×î¸ß¸ĞÈ¾ÂÊ
+--åœ°åŒºä¸­æœ€é«˜æ„ŸæŸ“ç‡
 SELECT location, population , MAX(total_cases)AS highest_infection_count,
 	MAX((CAST(total_cases AS FLOAT) / NULLIF(CAST(population AS FLOAT), 0))) * 100 AS highest_infected_percentage
 FROM [SQL Portfolio]..CovidDeaths
@@ -24,7 +25,7 @@ FROM [SQL Portfolio]..CovidDeaths
 GROUP BY location, population
 order by highest_infected_percentage desc
 
---×î¸ßËÀÍöÈËÊıµØÇøCountries with highest death count
+--æœ€é«˜æ­»äº¡äººæ•°åœ°åŒºCountries with highest death count
 SELECT location, MAX(cast(total_deaths as float))AS total_death_count
 FROM [SQL Portfolio]..CovidDeaths
 --WHERE location like '%china%'
@@ -32,7 +33,7 @@ where continent is not null
 GROUP BY location
 order by total_death_count desc
 
---ÒÔÖİÎªµ¥Î»²é¿´break down into continent
+--ä»¥å·ä¸ºå•ä½æŸ¥çœ‹break down into continent
 SELECT continent, MAX(cast(total_deaths as int))AS total_death_count
 FROM [SQL Portfolio]..CovidDeaths
 --WHERE location like '%china%'
@@ -65,7 +66,7 @@ SELECT *,
        (CAST(RollingPeopleVaccinated AS float) / NULLIF(CAST(population AS float), 0)) * 100 AS vaccination_rate
 FROM PopvsVac
 
---´´½¨ÁÙÊ±±íUSE TEMP TABLE
+--åˆ›å»ºä¸´æ—¶è¡¨USE TEMP TABLE
 DROP TABLE if exists #percentpopulationVaccinated;
 CREATE TABLE #percentpopulationVaccinated
 (
@@ -76,7 +77,7 @@ CREATE TABLE #percentpopulationVaccinated
     new_vaccinations numeric,
     RollingPeopleVaccinated numeric
 );
--- ²åÈë´¦ÀíºóµÄÊı¾İ
+-- æ’å…¥å¤„ç†åçš„æ•°æ®
 INSERT INTO #percentpopulationVaccinated
 SELECT 
     dea.continent,
@@ -90,13 +91,13 @@ FROM [SQL Portfolio]..CovidDeaths dea
 JOIN [SQL Portfolio]..CovidVaccinations vac
     ON dea.location = vac.location
    AND TRY_CAST(dea.date AS datetime) = TRY_CAST(vac.date AS datetime);
--- ²éÑ¯½á¹û²¢¼ÆËã½ÓÖÖÂÊ
+-- æŸ¥è¯¢ç»“æœå¹¶è®¡ç®—æ¥ç§ç‡
 SELECT *,
        (CAST(RollingPeopleVaccinated AS float) / NULLIF(CAST(population AS float), 0)) * 100 AS vaccination_rate
 FROM #percentpopulationVaccinated;
 
 
---´´½¨ÊÓÍ¼
+--åˆ›å»ºè§†å›¾
 USE [SQL Portfolio]; 
 GO
 Create View percentpopulationVaccinated as 
